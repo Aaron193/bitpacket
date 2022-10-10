@@ -1,17 +1,17 @@
 {
-	"name": "bitpacket",
-	"version": "1.0.0",
-	"description": "",
-	"main": "index.js",
-	"scripts": {
-		"test-binary": "node test/test.js",
-		"test-client": "node test/testClient.js"
-	},
-	"type": "module",
-	"keywords": [],
-	"author": "",
-	"license": "ISC",
-	"dependencies": {
-		"ws": "^8.9.0"
-	}
+    "name": "bitpacket",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "test-binary": "node test/test.js",
+        "test-client": "node test/testClient.js"
+    },
+    "type": "module",
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "ws": "^8.9.0"
+    }
 }
