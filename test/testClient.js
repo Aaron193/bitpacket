@@ -1,6 +1,7 @@
-import { WebSocketServer } from 'ws';
+// import bitpacket, { BitPacketTypes } from '../lib/main.js';
+const bitpacket = require('bitpacket');
 
-import bitpacket, { BitPacketTypes } from '../lib/main.js';
+console.log('BITPACKET: ', bitpacket);
 
 // start a test server
 const PORT = 3000;
@@ -17,13 +18,13 @@ const schemas = [
             */
             packetName: 'playerUpdate',
             packetID: 0, // this will be set automatically by the api
-            dataSchema: [BitPacketTypes.Uint16, BitPacketTypes.Uint16, BitPacketTypes.Uint16, BitPacketTypes.Uint8, BitPacketTypes.Uint8],
+            dataSchema: [bitpacket.BitPacketTypes.Uint16, bitpacket.BitPacketTypes.Uint16, bitpacket.BitPacketTypes.Uint16, bitpacket.BitPacketTypes.Uint8, bitpacket.BitPacketTypes.Uint8],
             variableNames: ['x', 'y', 'id', 'type', 'info'],
         },
         {
             packetName: 'worldUpdate',
             packetID: 1,
-            dataSchema: [BitPacketTypes.String, BitPacketTypes.Uint32, BitPacketTypes.Uint8],
+            dataSchema: [bitpacket.BitPacketTypes.String, bitpacket.BitPacketTypes.Uint32, bitpacket.BitPacketTypes.Uint8],
             variableNames: ['name', 'uid', 'type'],
         },
     ],
@@ -32,7 +33,7 @@ const schemas = [
         {
             packetName: 'mousemove',
             packetID: 0,
-            dataSchema: [BitPacketTypes.Uint8],
+            dataSchema: [bitpacket.BitPacketTypes.Uint8],
             variableNames: ['angle'],
         },
     ],

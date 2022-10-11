@@ -2,6 +2,20 @@
 
 Welcome to Bitpacket, a fast, reliable, and simple way to send binary packets between server and client via websockets.
 
+## Binary Types Support
+
+| Type   | Range                          |
+| ------ | ------------------------------ |
+| Uint8  | 0 - 255                        |
+| Uint16 | 0 - 65,535                     |
+| Uint24 | 0 - 16,777,215                 |
+| Uint32 | 0 - 4,294,967,295              |
+| Int8   | -128 - 127                     |
+| Int16  | -32,768 - 32,767               |
+| Int24  | -8,388,608 - 8,388,607         |
+| Int32  | -2,147,483,648 - 2,147,483,647 |
+| String | 0 - 11                         |
+
 ## How does it work?
 
 Server.js
