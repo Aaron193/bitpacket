@@ -2,6 +2,12 @@
 
 Welcome to Bitpacket, a fast, reliable, and simple way to send binary packets between server and client via websockets.
 
+## Installation
+
+```sh
+npm install wsbitpacket
+```
+
 ## Binary Types Support
 
 | Type   | Range                          |
@@ -14,14 +20,14 @@ Welcome to Bitpacket, a fast, reliable, and simple way to send binary packets be
 | Int16  | -32,768 - 32,767               |
 | Int24  | -8,388,608 - 8,388,607         |
 | Int32  | -2,147,483,648 - 2,147,483,647 |
-| String | 0 - 11                         |
+| String | unicode char 0-255 any length  |
 
 ## How does it work?
 
 Server.js
 
 ```js
-import bitpacket, { BitPacketTypes } from 'bitpacket';
+import bitpacket, { BitPacketTypes } from 'wsbitpacket';
 
 const PORT = process.env.PORT || 3000;
 
@@ -74,7 +80,7 @@ server.on('connection', socket => {
 Client.js
 
 ```js
-import bitpacket, { BitPacketTypes } from 'bitpacket';
+import bitpacket, { BitPacketTypes } from 'wsbitpacket';
 
 const PORT = 3000;
 
