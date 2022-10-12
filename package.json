@@ -2,7 +2,7 @@
     "name": "wsbitpacket",
     "version": "1.0.2",
     "description": "A websocket networking library to easily packet messages into its smallest binary format.",
-    "main": "lib/main.js",
+    "main": "index.js",
     "scripts": {
         "test-binary": "node test/test.js",
         "test-client": "node test/testClient.js"
@@ -21,7 +21,7 @@
     "author": "Aaron",
     "license": "ISC",
     "files": [
-        "lib/main.js"
+        "index.js"
     ],
     "repository": {
         "type": "git",

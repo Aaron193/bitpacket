@@ -1,63 +1,26 @@
-// import bitpacket, { BitPacketTypes } from '../lib/main.js';
-const bitpacket = require('bitpacket');
+const bitpacket = require('../lib/main.js');
 
 console.log('BITPACKET: ', bitpacket);
 
 // start a test server
 const PORT = 3000;
 
-const schemas = [
-    8888, // ID to say that we sending schemas
-    // server send packets
+const schemas = new bitpacket.BitSchema(
+    // Server schemas
     [
-        {
-            // packetName, packetID, dataSchema, variableNames
-            /*
-             [55,255,19758,83,99] raw
-             [ 55, 255, 77, 46, 83, 99 ] bit
-            */
-            packetName: 'playerUpdate',
-            packetID: 0, // this will be set automatically by the api
-            dataSchema: [bitpacket.BitPacketTypes.Uint16, bitpacket.BitPacketTypes.Uint16, bitpacket.BitPacketTypes.Uint16, bitpacket.BitPacketTypes.Uint8, bitpacket.BitPacketTypes.Uint8],
-            variableNames: ['x', 'y', 'id', 'type', 'info'],
-        },
-        {
-            packetName: 'worldUpdate',
-            packetID: 1,
-            dataSchema: [bitpacket.BitPacketTypes.String, bitpacket.BitPacketTypes.Uint32, bitpacket.BitPacketTypes.Uint8],
-            variableNames: ['name', 'uid', 'type'],
-        },
+        { name: 'playerUpdate', data: { id: bitpacket.BinaryTypes.Uint8, x: bitpacket.BinaryTypes.Uint16, y: bitpacket.BinaryTypes.Uint16 } },
+        { name: 'healthUpdate', data: { health: bitpacket.BinaryTypes.Uint8 } },
     ],
-    // client send packets
+    // Client Schemas
     [
-        {
-            packetName: 'mousemove',
-            packetID: 0,
-            dataSchema: [bitpacket.BitPacketTypes.Uint8],
-            variableNames: ['angle'],
-        },
-    ],
-];
-
-// const wss = new WebSocketServer({ port: PORT });
-
-// wss.on('connection', (ws, req) => {
-// 	// const ip = req.socket.remoteAddress;
-// 	// console.log('user ip: ' + ip);
-// 	ws.on('message', data => {
-// 		// console.log('received: %s', data);
-// 	});
-
-// 	// setup the client schemas
-// 	ws.send(JSON.stringify(schemas));
-
-// 	// server tells the client playerUpdate
-// 	ws.send(new Uint8Array([schemas[1][0].packetID, 55, 255, 77, 46, 83, 99]));
-// });
+        { name: 'mousemove', data: { angle: bitpacket.BinaryTypes.Uint8 } },
+        { name: 'chat', data: { message: bitpacket.BinaryTypes.String } },
+    ]
+);
 
 // start a bitpacket server
-const server = new bitpacket.Server(3000, schemas);
-server.on('connection', socket => {
+const server = new bitpacket.Server(PORT, schemas);
+server.onConnection(socket => {
     socket.on('disconnect', () => {
         // client disconnected from the websocket
         console.log('FROM SERVER: client disconnected');
@@ -68,12 +31,13 @@ server.on('connection', socket => {
         // data.x, data.y, data.valueYouSend
         // client sent message with the
     });
+    socket.on('chat', ({ message }) => {
+        console.log(`client sent messge of ${message} to the server`);
+    });
     socket.send('playerUpdate', {
+        id: 63,
         x: 9999,
         y: 5493,
-        id: 63,
-        type: 0,
-        info: 14,
     });
 });
 
@@ -84,6 +48,9 @@ client.on('connection', () => {
     console.log('i have connected to the server');
     client.send('mousemove', {
         angle: 49,
+    });
+    client.send('chat', {
+        message: 'hello sir',
     });
     client.disconnect();
 });
