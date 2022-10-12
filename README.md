@@ -97,7 +97,7 @@ client.on('playerUpdate', data => {
 
 # Contribute
 
-Found a problem or want to contrubute? Fork this **[repository][repo]** and leave \*\*pull
+Found a problem or want to contrubute? Fork this **[repository][repo]** and leave **pull request**
 
 **MIT License**
 
