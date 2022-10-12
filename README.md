@@ -94,3 +94,11 @@ client.on('playerUpdate', data => {
     // data: { id: 63, x: 9999, y: 5493 }
 });
 ```
+
+# Contribute
+
+Found a problem or want to contrubute? Fork this **[repository][repo]** and leave \*\*pull
+
+**MIT License**
+
+[repo]: https://github.com/Aaron193/bitpacket
