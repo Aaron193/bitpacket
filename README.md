@@ -1,6 +1,6 @@
-# Bitpacket
+# wsbitpacket
 
-Welcome to Bitpacket, a fast, reliable, and simple way to send binary packets between server and client via websockets.
+Welcome to wsbitpacket, a fast, reliable, and simple way to send binary packets between server and client via websockets.
 
 ## Installation
 
