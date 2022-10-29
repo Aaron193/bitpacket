@@ -1,5 +1,5 @@
-import { WriteStream } from '../stream/WriteStream.js';
-import { ReadStream } from '../stream/ReadStream.js';
+const WriteStream = require('../stream/WriteStream.js');
+const ReadStream = require('../stream/ReadStream.js');
 
 const writeStream = new WriteStream();
 

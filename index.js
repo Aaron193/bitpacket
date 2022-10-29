@@ -1,83 +1,45 @@
-const { WebSocketServer: e, WebSocket: t } = require('ws');
+const { WebSocketServer: t, WebSocket: e } = require('ws');
 let typeID = 0;
-const BitPacketTypes = { Uint8: typeID++, Uint16: typeID++, Uint24: typeID++, Uint32: typeID++, Int8: typeID++, Int16: typeID++, Int24: typeID++, Int32: typeID++, String: typeID++ },
-    BitPacketDecoder = {
-        [BitPacketTypes.Uint8]: function (e, t) {
-            return { decoded: 255 & e[t++], offset: t };
-        },
-        [BitPacketTypes.Uint16]: function (e, t) {
-            return { decoded: (e[t++] << 8) | (255 & e[t++]), offset: t };
-        },
-        [BitPacketTypes.Uint24]: function (e, t) {
-            return { decoded: (e[t++] << 16) | (e[t++] << 8) | e[t++], offset: t };
-        },
-        [BitPacketTypes.Uint32]: function (e, t) {
-            return e[t + 1] << 24 >= 127 ? { decoded: (e[t++] << 24) | (e[t++] << 16) | (e[t++] << 8) | e[t++], offset: t } : { decoded: 16777216 * e[t++] + 65536 * e[t++] + 256 * e[t++] + e[t++], offset: t };
-        },
-        [BitPacketTypes.Int8]: function (e, t) {
-            return { decoded: e[t++] - 128, offset: t };
-        },
-        [BitPacketTypes.Int16]: function (e, t) {
-            return { decoded: ((e[t++] << 8) - 32768) | e[t++], offset: t };
-        },
-        [BitPacketTypes.Int24]: function (e, t) {
-            return { decoded: ((e[t++] << 16) - 8388608) | (e[t++] << 8) | e[t++], offset: t };
-        },
-        [BitPacketTypes.Int32]: function (e, t) {
-            return { decoded: ((e[t++] << 24) - 2147483648) | (e[t++] << 16) | (e[t++] << 8) | e[t++], offset: t };
-        },
-        [BitPacketTypes.String]: function (e, t) {
-            let s = e[t++],
-                n = '';
-            for (let i = 0; i < s; i++) n += String.fromCharCode(e[t++]);
-            return { decoded: n, offset: t };
-        },
-    },
-    BitPacketEncoder = {
-        [BitPacketTypes.Uint8]: function (e, t, s) {
-            return (e[t++] = 255 & s), t;
-        },
-        [BitPacketTypes.Uint16]: function (e, t, s) {
-            return (e[t++] = s >> 8), (e[t++] = 255 & s), t;
-        },
-        [BitPacketTypes.Uint24]: function (e, t, s) {
-            return (e[t++] = (s >> 16) & 255), (e[t++] = (s >> 8) & 255), (e[t++] = 255 & s), t;
-        },
-        [BitPacketTypes.Uint32]: function (e, t, s) {
-            return (e[t++] = (s >> 24) & 255), (e[t++] = (s >> 16) & 255), (e[t++] = (s >> 8) & 255), (e[t++] = 255 & s), t;
-        },
-        [BitPacketTypes.Int8]: function (e, t, s) {
-            return (e[t++] = s + 128), t;
-        },
-        [BitPacketTypes.Int16]: function (e, t, s) {
-            return (e[t++] = ((s + 32768) >> 8) & 255), (e[t++] = (s + 32768) & 255), t;
-        },
-        [BitPacketTypes.Int24]: function (e, t, s) {
-            return (e[t++] = ((s + 8388608) >> 16) & 255), (e[t++] = ((s + 8388608) >> 8) & 255), (e[t++] = (s + 8388608) & 255), t;
-        },
-        [BitPacketTypes.Int32]: function (e, t, s) {
-            return (e[t++] = ((s + 2147483648) >> 24) & 255), (e[t++] = ((s + 2147483648) >> 16) & 255), (e[t++] = ((s + 2147483648) >> 8) & 255), (e[t++] = (s + 2147483648) & 255), t;
-        },
-        [BitPacketTypes.String]: function (e, t, s) {
-            if (s.length > 255) throw RangeError(`The maximum string length is 255. String with length of ${s.length} is too large!`);
-            e[t++] = 255 & s.length;
-            for (let n = 0; n < s.length; n++) e[t++] = 255 & s[n].charCodeAt();
-            return t;
-        },
-    };
+const BitPacketTypes = { Uint8: typeID++, Uint16: typeID++, Uint24: typeID++, Uint32: typeID++, Int8: typeID++, Int16: typeID++, Int24: typeID++, Int32: typeID++, BigInt64: typeID++, BigUint64: typeID++, Float32: typeID++, Float64: typeID++, String: typeID++ },
+    BitPacketBytes = { [BitPacketTypes.Uint8]: 1, [BitPacketTypes.Uint16]: 2, [BitPacketTypes.Uint24]: 3, [BitPacketTypes.Uint32]: 4, [BitPacketTypes.Int8]: 1, [BitPacketTypes.Int16]: 2, [BitPacketTypes.Int24]: 3, [BitPacketTypes.Int32]: 4, [BitPacketTypes.BigInt64]: 8, [BitPacketTypes.BigUint64]: 8, [BitPacketTypes.Float32]: 4, [BitPacketTypes.Float64]: 8, [BitPacketTypes.String]: -1 };
+(DataView.prototype.setUint24 = function (t, e) {
+    this.setUint8(t++, (e >> 16) & 255), this.setUint8(t++, (e >> 8) & 255), this.setUint8(t++, 255 & e);
+}),
+    (DataView.prototype.getUint24 = function (t) {
+        return (this.getUint8(t++) << 16) | (this.getUint8(t++) << 8) | this.getUint8(t);
+    }),
+    (DataView.prototype.setInt24 = function (t, e) {
+        this.setUint8(t++, ((e + 8388608) >> 16) & 255), this.setUint8(t++, ((e + 8388608) >> 8) & 255), this.setUint8(t++, (e + 8388608) & 255);
+    }),
+    (DataView.prototype.getInt24 = function (t) {
+        return ((this.getUint8(t++) << 16) - 8388608) | (this.getUint8(t++) << 8) | this.getUint8(t);
+    }),
+    (DataView.prototype.setString = function (t, e) {
+        if (e.length > 255) throw RangeError(`The maximum string length is 255. String with length of ${e.length} is too large!`);
+        this.setUint8(t++, 255 & e.length);
+        for (let i = 0; i < e.length; i++) this.setUint8(t++, 255 & e[i].charCodeAt());
+    }),
+    (DataView.prototype.getString = function (t) {
+        let e = this.getUint8(t++),
+            i = '';
+        for (let s = 0; s < e; s++) i += String.fromCharCode(this.getUint8(t++));
+        return i;
+    });
+const BitPacketDecoder = { [BitPacketTypes.Uint8]: DataView.prototype.getUint8, [BitPacketTypes.Uint16]: DataView.prototype.getUint16, [BitPacketTypes.Uint24]: DataView.prototype.getUint24, [BitPacketTypes.Uint32]: DataView.prototype.getUint32, [BitPacketTypes.Int8]: DataView.prototype.getInt8, [BitPacketTypes.Int16]: DataView.prototype.getInt16, [BitPacketTypes.Int24]: DataView.prototype.getInt24, [BitPacketTypes.Int32]: DataView.prototype.getInt32, [BitPacketTypes.BigInt64]: DataView.prototype.getBigInt64, [BitPacketTypes.BigUint64]: DataView.prototype.getBigUint64, [BitPacketTypes.Float32]: DataView.prototype.getFloat32, [BitPacketTypes.Float64]: DataView.prototype.getFloat64, [BitPacketTypes.String]: DataView.prototype.getString },
+    BitPacketEncoder = { [BitPacketTypes.Uint8]: DataView.prototype.setUint8, [BitPacketTypes.Uint16]: DataView.prototype.setUint16, [BitPacketTypes.Uint24]: DataView.prototype.setUint24, [BitPacketTypes.Uint32]: DataView.prototype.setUint32, [BitPacketTypes.Int8]: DataView.prototype.setInt8, [BitPacketTypes.Int16]: DataView.prototype.setInt16, [BitPacketTypes.Int24]: DataView.prototype.setInt24, [BitPacketTypes.Int32]: DataView.prototype.setInt32, [BitPacketTypes.BigInt64]: DataView.prototype.setBigInt64, [BitPacketTypes.BigUint64]: DataView.prototype.setBigUint64, [BitPacketTypes.Float32]: DataView.prototype.setFloat32, [BitPacketTypes.Float64]: DataView.prototype.setFloat64, [BitPacketTypes.String]: DataView.prototype.setString };
 class BitSchema {
-    constructor(e, t) {
-        if ('object' != typeof e || 'object' != typeof t) throw TypeError('You did not enter 2 objects while constructing the MessageSchemas class');
-        (this.serverId = 0), (this.clientId = 0), (this.GET_SCHEMA_ID = 'NoySLb23YnZZsSZ14gQAdynS'), (this.serverSend = e), (this.clientSend = t), (this.payload = []);
-        for (let s = 0; s < this.serverSend.length; s++) this.serverSend[s].id = this.serverId++;
-        for (let n = 0; n < this.clientSend.length; n++) this.clientSend[n].id = this.clientId++;
+    constructor(t, e) {
+        if ('object' != typeof t || 'object' != typeof e) throw TypeError('You did not enter 2 objects while constructing the MessageSchemas class');
+        (this.serverId = 0), (this.clientId = 0), (this.GET_SCHEMA_ID = 'NoySLb23YnZZsSZ14gQAdynS'), (this.serverSend = t), (this.clientSend = e), (this.payload = []);
+        for (let i = 0; i < this.serverSend.length; i++) this.serverSend[i].id = this.serverId++;
+        for (let s = 0; s < this.clientSend.length; s++) this.clientSend[s].id = this.clientId++;
         if (this.serverId > 255 || this.clientId > 255) throw RangeError('You have surpassed 255 message schemas for the Server and/or the Client');
         (this.payload[0] = this.GET_SCHEMA_ID), (this.payload[1] = this.serverSend), (this.payload[2] = this.clientSend);
     }
 }
 class Client {
-    constructor(e) {
-        (this.address = e), (this.socket = new t(e)), (this.socket.binaryType = 'arraybuffer'), (this.socket.onopen = () => this.onSocketOpen()), (this.socket.onclose = () => this.onSocketClose()), (this.socket.onmessage = e => this.onSocketMessage(e)), (this.socket.onerror = e => this.onSocketError(e)), (this.socketReady = !1), (this.GET_SCHEMA_ID = 'NoySLb23YnZZsSZ14gQAdynS'), (this.events = {}), (this.schemasClientSend = {}), (this.schemasServerSend = {}), (this.schemaServerSendNameToId = {}), (this.schemaClientSendNameToId = {}), (this.schemaIDPool = 0);
+    constructor(t) {
+        (this.address = t), (this.socket = new e(t)), (this.socket.binaryType = 'arraybuffer'), (this.socket.onopen = () => this.onSocketOpen()), (this.socket.onclose = () => this.onSocketClose()), (this.socket.onmessage = t => this.onSocketMessage(t)), (this.socket.onerror = t => this.onSocketError(t)), (this.socketReady = !1), (this.GET_SCHEMA_ID = 'NoySLb23YnZZsSZ14gQAdynS'), (this.events = {}), (this.schemasClientSend = {}), (this.schemasServerSend = {}), (this.schemaServerSendNameToId = {}), (this.schemaClientSendNameToId = {}), (this.schemaIDPool = 0);
     }
     onSocketOpen() {
         this.socketReady = !0;
@@ -85,128 +47,165 @@ class Client {
     onSocketClose() {
         (this.socketReady = !1), this.events.disconnect();
     }
-    onSocketMessage(e) {
-        let t = e.data;
-        if ('object' == typeof t) this.parseBinaryPacket(new Uint8Array(t));
+    onSocketMessage(t) {
+        let e = t.data;
+        if ('object' == typeof e) this.parseBinaryPacket(new Uint8Array(e));
         else {
-            let s = JSON.parse(t);
-            s[0] === this.GET_SCHEMA_ID && this.receivedSchemas(s);
+            let i = JSON.parse(e);
+            i[0] === this.GET_SCHEMA_ID && this.receivedSchemas(i);
         }
     }
-    onSocketError(e) {
-        throw Error('CLIENT WEBSCOKET ERROR: ' + e);
+    onSocketError(t) {
+        throw Error('CLIENT WEBSCOKET ERROR: ' + t);
     }
     disconnect() {
         this.socket.close();
     }
-    parseBinaryPacket(e) {
-        let t = e[0],
-            { packetName: s, dataSchema: n } = this.schemasServerSend[t],
-            i = {},
-            o = 1;
-        for (let c in n) {
-            let r = n[c],
-                a = BitPacketDecoder[r](e, o);
-            (o = a.offset), (i[c] = a.decoded);
+    parseBinaryPacket(t) {
+        let e = 0,
+            i = new DataView(t.buffer),
+            s = BitPacketDecoder[BitPacketTypes.Uint8].bind(i)(e);
+        e += BitPacketBytes[BitPacketTypes.Uint8];
+        let { packetName: n, dataSchema: o } = this.schemasServerSend[s],
+            c = {};
+        for (let a in o) {
+            let r = o[a],
+                h = BitPacketBytes[r];
+            if (-1 === h) {
+                let p = BitPacketDecoder[BitPacketTypes.Uint8].bind(i)(e),
+                    l = BitPacketDecoder[r].bind(i)(e);
+                (e += 1 + (255 & p)), (c[a] = l);
+                continue;
+            }
+            let y = BitPacketDecoder[r].bind(i)(e);
+            (e += h), (c[a] = y);
         }
-        let h = this.events[s];
-        h && h(i);
+        let d = this.events[n];
+        d && d(c);
     }
-    receivedSchemas(e) {
+    receivedSchemas(t) {
         if (this.schemasClientSend.length >= 256 || this.schemasServerSend.length >= 256) throw Error("Too many packet types, as of right now there's only support for 256 unique packets");
-        for (let t = 0; t < e[1].length; t++) {
-            let { name: s, data: n, id: i } = e[1][t];
-            (this.schemasServerSend[i] = { packetName: s, dataSchema: n }), (this.schemaServerSendNameToId[s] = i);
+        for (let e = 0; e < t[1].length; e++) {
+            let { name: i, data: s, id: n } = t[1][e];
+            (this.schemasServerSend[n] = { packetName: i, dataSchema: s }), (this.schemaServerSendNameToId[i] = n);
         }
-        for (let o = 0; o < e[2].length; o++) {
-            let { name: c, data: r, id: a } = e[2][o];
-            (this.schemasClientSend[a] = { packetName: c, dataSchema: r }), (this.schemaClientSendNameToId[c] = a);
+        for (let o = 0; o < t[2].length; o++) {
+            let { name: c, data: a, id: r } = t[2][o];
+            (this.schemasClientSend[r] = { packetName: c, dataSchema: a }), (this.schemaClientSendNameToId[c] = r);
         }
         this.events.connection();
     }
-    send(e, t) {
-        let s = this.schemaClientSendNameToId[e],
-            { dataSchema: n } = this.schemasClientSend[s],
-            i = [s],
-            o = 1;
-        for (let c in n) {
-            let r = n[c],
-                a = t[c];
-            o = BitPacketEncoder[r](i, o, a);
+    send(t, e) {
+        let i = this.schemaClientSendNameToId[t];
+        if (void 0 == i) throw Error(`You id not create a schema for this message! ${t}`);
+        let { dataSchema: s } = this.schemasClientSend[i],
+            n = 0,
+            o = new DataView(new ArrayBuffer(65535));
+        for (let c in (BitPacketEncoder[BitPacketTypes.Uint8].bind(o)(n, i), (n += BitPacketBytes[BitPacketTypes.Uint8]), s)) {
+            let a = s[c],
+                r = e[c];
+            BitPacketEncoder[a].bind(o)(n, r);
+            let h = BitPacketBytes[a];
+            if (-1 === h) {
+                n += 1 + (255 & r.length);
+                continue;
+            }
+            n += h;
         }
-        this.socket.send(new Uint8Array(i));
+        let p = new Uint8Array(o.buffer, 0, n).slice();
+        this.socket.send(p);
     }
-    on(e, t) {
-        if (this.events[e]) throw Error('Received a duplicate BitPacket Client event name');
-        this.events[e] = t;
+    on(t, e) {
+        if (this.events[t]) throw Error('Received a duplicate BitPacket Client event name');
+        this.events[t] = e;
     }
 }
+function getTime() {
+    var t = process.hrtime();
+    return (1e6 * t[0] + t[1] / 1e3) / 1e3;
+}
 class WSConnection {
-    constructor(e, t) {
-        (this.server = t),
-            (this.ws = e),
+    constructor(t, e) {
+        (this.server = e),
+            (this.ws = t),
             (this.messageCallback = null),
             (this.closeCallback = null),
             (this.events = {}),
-            (this.ws.onmessage = ({ data: e }) => {
-                'object' == typeof e && this.parseBinaryPacket(new Uint8Array(e));
+            (this.ws.onmessage = ({ data: t }) => {
+                'object' == typeof t && this.parseBinaryPacket(new Uint8Array(t));
             }),
             (this.ws.onclose = () => {
                 this.events.disconnect();
             }),
-            (this.ws.onerror = e => {
-                this.events.error(e);
+            (this.ws.onerror = t => {
+                this.events.error(t);
             });
     }
-    parseBinaryPacket(e) {
-        let t = e[0],
-            { packetName: s, dataSchema: n } = this.server.schemasClientSend[t],
-            i = {},
-            o = 1;
-        for (let c in n) {
-            let r = n[c],
-                a = BitPacketDecoder[r](e, o);
-            (o = a.offset), (i[c] = a.decoded);
+    parseBinaryPacket(t) {
+        let e = 0,
+            i = new DataView(t.buffer),
+            s = BitPacketDecoder[BitPacketTypes.Uint8].bind(i)(e);
+        e += BitPacketBytes[BitPacketTypes.Uint8];
+        let { packetName: n, dataSchema: o } = this.server.schemasClientSend[s],
+            c = {};
+        for (let a in o) {
+            let r = o[a],
+                h = BitPacketBytes[r];
+            if (-1 === h) {
+                let p = BitPacketDecoder[BitPacketTypes.Uint8].bind(i)(e),
+                    l = BitPacketDecoder[r].bind(i)(e);
+                (e += 1 + (255 & p)), (c[a] = l);
+                continue;
+            }
+            let y = BitPacketDecoder[r].bind(i)(e);
+            (e += h), (c[a] = y);
         }
-        let h = this.events[s];
-        h && h(i);
+        let d = this.events[n];
+        d && d(c);
     }
-    send(e, t) {
-        let s = this.server.schemaServerSendNameToId[e],
-            { dataSchema: n } = this.server.schemasServerSend[s],
-            i = [s],
-            o = 1;
-        for (let c in n) {
-            let r = n[c],
-                a = t[c];
-            o = BitPacketEncoder[r](i, o, a);
+    send(t, e) {
+        let i = this.server.schemaServerSendNameToId[t],
+            { dataSchema: s } = this.server.schemasServerSend[i],
+            n = 0,
+            o = new DataView(new ArrayBuffer(65535));
+        for (let c in (BitPacketEncoder[BitPacketTypes.Uint8].bind(o)(n, i), (n += BitPacketBytes[BitPacketTypes.Uint8]), s)) {
+            let a = s[c],
+                r = e[c];
+            BitPacketEncoder[a].bind(o)(n, r);
+            let h = BitPacketBytes[a];
+            if (-1 === h) {
+                n += 1 + (255 & r.length);
+                continue;
+            }
+            n += h;
         }
-        this.ws.send(new Uint8Array(i));
+        let p = new Uint8Array(o.buffer, 0, n).slice();
+        this.ws.send(p);
     }
-    on(e, t) {
-        if (this.events[e]) throw Error('Received a duplicate BitPacket Server Websocket event name');
-        this.events[e] = t;
+    on(t, e) {
+        if (this.events[t]) throw Error('Received a duplicate BitPacket Server Websocket event name');
+        this.events[t] = e;
     }
 }
 class Server {
-    constructor(t, { payload: s }) {
+    constructor(e, { payload: i }) {
         (this.onConnectionCallback = null), (this.schemasServerSend = {}), (this.schemasClientSend = {}), (this.schemaServerSendNameToId = {}), (this.schemaClientSendNameToId = {});
-        for (let n = 0; n < s[1].length; n++) {
-            let { name: i, data: o, id: c } = s[1][n];
-            (this.schemasServerSend[c] = { packetName: i, dataSchema: o }), (this.schemaServerSendNameToId[i] = c);
+        for (let s = 0; s < i[1].length; s++) {
+            let { name: n, data: o, id: c } = i[1][s];
+            (this.schemasServerSend[c] = { packetName: n, dataSchema: o }), (this.schemaServerSendNameToId[n] = c);
         }
-        for (let r = 0; r < s[2].length; r++) {
-            let { name: a, data: h, id: d } = s[2][r];
-            (this.schemasClientSend[d] = { packetName: a, dataSchema: h }), (this.schemaClientSendNameToId[a] = d);
+        for (let a = 0; a < i[2].length; a++) {
+            let { name: r, data: h, id: p } = i[2][a];
+            (this.schemasClientSend[p] = { packetName: r, dataSchema: h }), (this.schemaClientSendNameToId[r] = p);
         }
-        (this.port = t),
-            (this.wss = new e({ port: this.port })),
-            this.wss.on('connection', e => {
-                e.send(JSON.stringify(s)), (this.connection = new WSConnection(e, this)), null !== this.onConnectionCallback && this.onConnectionCallback(this.connection);
+        (this.port = e),
+            (this.wss = new t({ port: this.port })),
+            this.wss.on('connection', (t, e) => {
+                t.send(JSON.stringify(i)), (this.connection = new WSConnection(t, this)), null !== this.onConnectionCallback && this.onConnectionCallback(this.connection, e);
             });
     }
-    onConnection(e) {
-        this.onConnectionCallback = e;
+    onConnection(t) {
+        this.onConnectionCallback = t;
     }
 }
 const bitpacket = { Client: Client, Server: Server, BinaryTypes: BitPacketTypes, BitSchema: BitSchema };
