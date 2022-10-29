@@ -62,7 +62,7 @@ server.onConnection((socket, req) => {
         // server receives a message from the client based on the client-send schemas^
         // data: { angle: 49 }
     });
-    client.on('bigNumber', data => {
+    socket.on('bigNumber', data => {
         // data: {number: 9999999999999999999n }
     });
 

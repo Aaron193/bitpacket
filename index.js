@@ -37,9 +37,40 @@ class BitSchema {
         (this.payload[0] = this.GET_SCHEMA_ID), (this.payload[1] = this.serverSend), (this.payload[2] = this.clientSend);
     }
 }
+class BitStreamClient {
+    constructor(t, e) {
+        (this.client = t), (this.size = e), (this.dv = new DataView(new ArrayBuffer(this.size))), (this.offset = 0);
+    }
+    add(t, e) {
+        let i = this.client.schemaClientSendNameToId[t];
+        if (void 0 == i) throw Error(`You id not create a schema for this message! ${t}`);
+        let { dataSchema: s } = this.client.schemasClientSend[i];
+        for (let n in (BitPacketEncoder[BitPacketTypes.Uint8].bind(this.dv)(this.offset, i), (this.offset += BitPacketBytes[BitPacketTypes.Uint8]), s)) {
+            let o = s[n],
+                c = e[n];
+            BitPacketEncoder[o].bind(this.dv)(this.offset, c);
+            let a = BitPacketBytes[o];
+            if (-1 === a) {
+                this.offset += 1 + (255 & c.length);
+                continue;
+            }
+            this.offset += a;
+        }
+    }
+    reset() {
+        (this.dv = new DataView(new ArrayBuffer(this.size))), (this.offset = 0);
+    }
+    send() {
+        this.client.socket.send(new Uint8Array(this.dv.buffer, 0, this.offset).slice());
+    }
+}
 class Client {
     constructor(t) {
-        (this.address = t), (this.socket = new e(t)), (this.socket.binaryType = 'arraybuffer'), (this.socket.onopen = () => this.onSocketOpen()), (this.socket.onclose = () => this.onSocketClose()), (this.socket.onmessage = t => this.onSocketMessage(t)), (this.socket.onerror = t => this.onSocketError(t)), (this.socketReady = !1), (this.GET_SCHEMA_ID = 'NoySLb23YnZZsSZ14gQAdynS'), (this.events = {}), (this.schemasClientSend = {}), (this.schemasServerSend = {}), (this.schemaServerSendNameToId = {}), (this.schemaClientSendNameToId = {}), (this.schemaIDPool = 0);
+        (this.address = t), (this.socket = new e(t)), (this.socket.binaryType = 'arraybuffer'), (this.socket.onopen = () => this.onSocketOpen()), (this.socket.onclose = () => this.onSocketClose()), (this.socket.onmessage = t => this.onSocketMessage(t)), (this.socket.onerror = t => this.onSocketError(t)), (this.socketReady = !1), (this.GET_SCHEMA_ID = 'NoySLb23YnZZsSZ14gQAdynS'), (this.events = {}), (this.schemasClientSend = {}), (this.schemasServerSend = {}), (this.schemaServerSendNameToId = {}), (this.schemaClientSendNameToId = {}), (this.schemaIDPool = 0), (this.hasStream = !1);
+    }
+    useStream(t = 65535) {
+        if (this.hasStream) throw Error('You have already created a stream for this connection');
+        (this.hasStream = !0), (this.stream = new BitStreamClient(this, t));
     }
     onSocketOpen() {
         this.socketReady = !0;
@@ -77,11 +108,11 @@ class Client {
                 (e += 1 + (255 & p)), (c[a] = l);
                 continue;
             }
-            let y = BitPacketDecoder[r].bind(i)(e);
-            (e += h), (c[a] = y);
+            let d = BitPacketDecoder[r].bind(i)(e);
+            (e += h), (c[a] = d);
         }
-        let d = this.events[n];
-        d && d(c);
+        let y = this.events[n];
+        y && y(c), e < t.byteLength && this.parseBinaryPacket(t.slice(e));
     }
     receivedSchemas(t) {
         if (this.schemasClientSend.length >= 256 || this.schemasServerSend.length >= 256) throw Error("Too many packet types, as of right now there's only support for 256 unique packets");
@@ -124,6 +155,33 @@ function getTime() {
     var t = process.hrtime();
     return (1e6 * t[0] + t[1] / 1e3) / 1e3;
 }
+class BitStreamServer {
+    constructor(t, e) {
+        (this.connection = t), (this.size = e), (this.dv = new DataView(new ArrayBuffer(this.size))), (this.offset = 0);
+    }
+    add(t, e) {
+        let i = this.connection.server.schemaServerSendNameToId[t];
+        if (void 0 == i) throw Error(`You id not create a schema for this message! ${t}`);
+        let { dataSchema: s } = this.connection.server.schemasServerSend[i];
+        for (let n in (BitPacketEncoder[BitPacketTypes.Uint8].bind(this.dv)(this.offset, i), (this.offset += BitPacketBytes[BitPacketTypes.Uint8]), s)) {
+            let o = s[n],
+                c = e[n];
+            BitPacketEncoder[o].bind(this.dv)(this.offset, c);
+            let a = BitPacketBytes[o];
+            if (-1 === a) {
+                this.offset += 1 + (255 & c.length);
+                continue;
+            }
+            this.offset += a;
+        }
+    }
+    reset() {
+        (this.dv = new DataView(new ArrayBuffer(this.size))), (this.offset = 0);
+    }
+    send() {
+        this.connection.ws.send(new Uint8Array(this.dv.buffer, 0, this.offset).slice());
+    }
+}
 class WSConnection {
     constructor(t, e) {
         (this.server = e),
@@ -131,6 +189,7 @@ class WSConnection {
             (this.messageCallback = null),
             (this.closeCallback = null),
             (this.events = {}),
+            (this.hasStream = !1),
             (this.ws.onmessage = ({ data: t }) => {
                 'object' == typeof t && this.parseBinaryPacket(new Uint8Array(t));
             }),
@@ -140,6 +199,10 @@ class WSConnection {
             (this.ws.onerror = t => {
                 this.events.error(t);
             });
+    }
+    useStream(t = 65535) {
+        if (this.hasStream) throw Error('You have already created a stream for this connection');
+        (this.hasStream = !0), (this.stream = new BitStreamServer(this, t));
     }
     parseBinaryPacket(t) {
         let e = 0,
@@ -157,11 +220,11 @@ class WSConnection {
                 (e += 1 + (255 & p)), (c[a] = l);
                 continue;
             }
-            let y = BitPacketDecoder[r].bind(i)(e);
-            (e += h), (c[a] = y);
+            let d = BitPacketDecoder[r].bind(i)(e);
+            (e += h), (c[a] = d);
         }
-        let d = this.events[n];
-        d && d(c);
+        let y = this.events[n];
+        y && y(c);
     }
     send(t, e) {
         let i = this.server.schemaServerSendNameToId[t],

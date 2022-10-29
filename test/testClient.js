@@ -113,6 +113,30 @@ server.onConnection((socket, req) => {
     const ipAddress = req.socket.remoteAddress;
     console.log(ipAddress);
 
+    socket.useStream();
+    socket.stream.add('playerUpdate', {
+        id: 55,
+        x: 9943,
+        y: 4352,
+    });
+    socket.stream.add('superTest2', payload);
+    socket.stream.add('healthUpdate', {
+        health: 100,
+    });
+    socket.stream.send();
+    socket.stream.reset();
+    socket.stream.add('playerUpdate', {
+        id: 55,
+        x: 9943,
+        y: 4352,
+    });
+    socket.stream.add('superTest2', payload);
+    socket.stream.add('healthUpdate', {
+        health: 100,
+    });
+    socket.stream.send();
+    socket.stream.reset();
+
     socket.on('disconnect', () => {
         // client disconnected from the websocket
         console.log('FROM SERVER: client disconnected');
@@ -141,6 +165,15 @@ server.onConnection((socket, req) => {
 const client = new bitpacket.Client(`ws://localhost:${PORT}`);
 
 client.on('connection', () => {
+    client.useStream();
+    client.stream.add('mousemove', {
+        angle: 186,
+    });
+    client.stream.add('chat', {
+        message: 'hello sir',
+        what: 174,
+    });
+
     console.log('i have connected to the server');
     client.send('mousemove', {
         angle: 49,
@@ -159,6 +192,11 @@ client.on('disconnect', () => {
 
 client.on('playerUpdate', data => {
     console.log('client has received data:');
+    console.log(data);
+});
+
+client.on('healthUpdate', data => {
+    console.log('client HP:');
     console.log(data);
 });
 
