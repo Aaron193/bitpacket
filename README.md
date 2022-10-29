@@ -53,7 +53,7 @@ const schemas = new bitpacket.BitSchema(
 const server = new bitpacket.Server(PORT, schemas);
 
 // A client connects to the websocket
-server.onConnection(socket => {
+server.onConnection((socket, req) => {
     socket.on('disconnect', () => {
         // client disconnected
     });
