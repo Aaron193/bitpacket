@@ -10,17 +10,21 @@ npm install wsbitpacket
 
 ## Binary Types Support
 
-| Type   | Range                          |
-| ------ | ------------------------------ |
-| Uint8  | 0 - 255                        |
-| Uint16 | 0 - 65,535                     |
-| Uint24 | 0 - 16,777,215                 |
-| Uint32 | 0 - 4,294,967,295              |
-| Int8   | -128 - 127                     |
-| Int16  | -32,768 - 32,767               |
-| Int24  | -8,388,608 - 8,388,607         |
-| Int32  | -2,147,483,648 - 2,147,483,647 |
-| String | unicode char 0-255 any length  |
+| Type      | Range                          |
+| --------- | ------------------------------ |
+| Uint8     | 0 - 255                        |
+| Uint16    | 0 - 65,535                     |
+| Uint24    | 0 - 16,777,215                 |
+| Uint32    | 0 - 4,294,967,295              |
+| Int8      | -128 - 127                     |
+| Int16     | -32,768 - 32,767               |
+| Int24     | -8,388,608 - 8,388,607         |
+| Int32     | -2,147,483,648 - 2,147,483,647 |
+| BigInt64  | really big +/-                 |
+| BigUint64 | even bigger +/-                |
+| Float32   | 4 bytes of decimal             |
+| Float64   | 8 bytes of decimal             |
+| String    | unicode char 0-255 any length  |
 
 ## How does it work?
 
@@ -42,6 +46,7 @@ const schemas = new bitpacket.BitSchema(
     [
         { name: 'mousemove', data: { angle: bitpacket.BinaryTypes.Uint8 } },
         { name: 'chat', data: { message: bitpacket.BinaryTypes.String } },
+        { name: 'bigNumber', data: { number: bitpacket.BinaryTypes.BigUint64 } },
     ]
 );
 
@@ -80,6 +85,11 @@ client.on('connection', () => {
     // send a packet to the server based on how you defined your client-send schemas^
     client.send('mousemove', {
         angle: 49,
+    });
+    client.send('bigNumber', {
+        // when sending BigUint64 or BigInt64 make sure to put an "n" at the end of the numebr
+        // or wrap it in BigInt()
+        number: 9999999999999999999n,
     });
     // disconnect from the server
     client.disconnect();
