@@ -1,6 +1,6 @@
 {
     "name": "wsbitpacket",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "description": "A websocket networking library to easily packet messages into its smallest binary format.",
     "main": "index.js",
     "scripts": {

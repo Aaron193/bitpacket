@@ -62,6 +62,9 @@ server.onConnection(socket => {
         // server receives a message from the client based on the client-send schemas^
         // data: { angle: 49 }
     });
+    client.on('bigNumber', data => {
+        // data: {number: 9999999999999999999n }
+    });
 
     // Server sends a message to the client based on the server-send schemas^
     socket.send('playerUpdate', {
