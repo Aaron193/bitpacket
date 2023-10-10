@@ -1,7 +1,5 @@
 # wsbitpacket
 
-Welcome to wsbitpacket, a fast, reliable, and simple way to send binary packets between server and client via WebSockets.
-
 **IMPORTANT**
 This library is old and was made as an experiment. I would not recommend using it in a real application for the following reasons:
  - You're limited to the built-in WebSocket wrapper API, 
@@ -9,6 +7,9 @@ This library is old and was made as an experiment. I would not recommend using i
  - No support for nesting objects on message schemas
  - etc.etc.etc...
 To address these issues I created [https://github.com/Aaron193/bincoder] which provides you with more flexibility in your code. It's been a while I've touched that code and I can't remember if it's stable or not (however I do remember it wasn't perfect). I have gained a lot of knowledge over the years, which I may use to create a third and final version of this project that ditches the WebSocket wrapper and just provides you with schema creation, encoding, decoding, and bitstream support as well as proper typescript support :)   
+
+
+Welcome to wsbitpacket, a fast, reliable, and simple way to send binary packets between server and client via WebSockets.
 
 ## Installation
 
